@@ -9,6 +9,17 @@ CUDA_WHEEL_VERSIONS = {
     "cu128": (12, 8),
     "cu130": (13, 0),
 }
+# Drivers that report CUDA 12.1–12.5 cannot load the current cu126+ wheels.
+# PyTorch 2.5.1 is the newest cu121 release and still ships Pascal kernels,
+# which current cu126+ wheels no longer include.
+OLD_DRIVER_CUDA_WHEEL = "cu121"
+OLD_DRIVER_MIN_CUDA = (12, 1)
+LEGACY_TORCH_VERSION = "2.5.1"
+LEGACY_TORCH_PACKAGES = (
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "torchaudio==2.5.1",
+)
 MIN_SUPPORTED_COMPUTE_CAPABILITY = (5, 0)
 LEGACY_GPU_MAX_COMPUTE_CAPABILITY = (7, 4)
 LEGACY_GPU_CUDA_WHEEL = "cu126"
@@ -137,9 +148,17 @@ def select_cuda_wheel(cuda_version, compute_capabilities):
                 "Update the NVIDIA driver so nvidia-smi reports CUDA 13.0 or newer, "
                 "then run setup again."
             )
+        if driver_version >= OLD_DRIVER_MIN_CUDA:
+            print(
+                f"CUDA {cuda_version} is older than the current PyTorch wheels "
+                f"({', '.join(CUDA_WHEEL_VERSIONS)}). "
+                "Using the legacy CUDA 12.1 profile: "
+                f"{', '.join(LEGACY_TORCH_PACKAGES)}."
+            )
+            return OLD_DRIVER_CUDA_WHEEL
         raise RuntimeError(
             f"CUDA {cuda_version} is too old for the supported PyTorch wheels: "
-            f"{', '.join(CUDA_WHEEL_VERSIONS)}."
+            f"{', '.join(CUDA_WHEEL_VERSIONS)}, {OLD_DRIVER_CUDA_WHEEL}."
         )
 
     selected = max(compatible_tags, key=lambda tag: CUDA_WHEEL_VERSIONS[tag])
@@ -150,7 +169,10 @@ def select_cuda_wheel(cuda_version, compute_capabilities):
     return selected
 
 
-def select_torch_packages(compute_capabilities):
+def select_torch_packages(compute_capabilities, cuda_tag=None):
+    tag = CUDA_TAG if cuda_tag is None else cuda_tag
+    if tag == OLD_DRIVER_CUDA_WHEEL:
+        return LEGACY_TORCH_PACKAGES
     return ("torch", "torchvision", "torchaudio")
 
 
@@ -174,12 +196,18 @@ def install_torch(*, pyg_compatible=False):
     """Install the default Torch stack or the pinned PyG-compatible stack."""
     python = sys.executable
     subprocess.call([python, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio"])
-    packages = PYG_TORCH_PACKAGES if pyg_compatible else select_torch_packages(GPU_COMPUTE_CAPABILITIES)
+    use_pyg_profile = pyg_compatible and CUDA_TAG != OLD_DRIVER_CUDA_WHEEL
+    packages = PYG_TORCH_PACKAGES if use_pyg_profile else select_torch_packages(GPU_COMPUTE_CAPABILITIES)
 
-    if pyg_compatible:
+    if use_pyg_profile:
         print(
             "\nInstalling the PyTorch Geometric compatibility profile: "
             f"PyTorch {PYG_TORCH_VERSION}. This replaces the installed Torch stack.\n"
+        )
+    elif pyg_compatible:
+        print(
+            "\nThe legacy CUDA 12.1 profile keeps PyTorch "
+            f"{LEGACY_TORCH_VERSION}. PyTorch Geometric will be installed against that stack.\n"
         )
 
     subprocess.check_call([
@@ -193,8 +221,11 @@ def install_torch(*, pyg_compatible=False):
 
 
 def pyg_wheel_url(torch_version=None, cuda_tag=None):
-    torch_version = torch_version or PYG_TORCH_VERSION
     cuda_tag = CUDA_TAG if cuda_tag is None else cuda_tag
+    if torch_version is None:
+        torch_version = (
+            LEGACY_TORCH_VERSION if cuda_tag == OLD_DRIVER_CUDA_WHEEL else PYG_TORCH_VERSION
+        )
     suffix = "cpu" if cuda_tag == "cpu" else cuda_tag
     return f"https://data.pyg.org/whl/torch-{torch_version}+{suffix}.html"
 
@@ -252,10 +283,14 @@ def install_pyg(*, extensions=False):
 
     python = sys.executable
     torch_version = torch.__version__.split("+")[0]
-    if torch_version != PYG_TORCH_VERSION:
+    allowed_versions = {PYG_TORCH_VERSION}
+    if CUDA_TAG == OLD_DRIVER_CUDA_WHEEL:
+        allowed_versions.add(LEGACY_TORCH_VERSION)
+    if torch_version not in allowed_versions:
+        expected = ", ".join(sorted(allowed_versions))
         raise RuntimeError(
             "PyTorch Geometric extensions require the OpenSportsLib PyG compatibility "
-            f"profile (PyTorch {PYG_TORCH_VERSION}); found PyTorch {torch_version}. "
+            f"profile (PyTorch {expected}); found PyTorch {torch_version}. "
             "Run 'opensportslib setup --pyg' so the matching Torch stack is installed."
         )
     print("\nInstalling PyTorch Geometric...\n")

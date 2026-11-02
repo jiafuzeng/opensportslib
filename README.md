@@ -2,139 +2,136 @@
 
 <img src="docs/assets/osl.jpg" height="400">
 
-OpenSportsLib is a modular Python library for sports video understanding.
+OpenSportsLib 是一个面向体育视频理解的模块化 Python 库。
 
-It provides a unified framework to **train, evaluate, and run inference** for key temporal understanding tasks in sports video, including:
+它提供统一框架，用于对体育视频中的关键时序理解任务进行**训练、评估和推理**，目前包括：
 
-- **Action classification**
-- **Action localization / spotting**
-- **Visual Question Answering (VQA)**
+- **动作分类**
+- **动作定位 / 动作检测（spotting）**
+- **视觉问答（VQA）**
 
-Retrieval and action description/captioning are roadmap areas. They do not yet
-have first-class task wrappers or training workflows in this package.
+检索以及动作描述 / 字幕生成仍在路线图中。本包尚未提供对应的一等任务封装或训练流程。
 
-OpenSportsLib is designed for **researchers, ML engineers, and sports analytics teams** who want reproducible and extensible workflows for sports video AI.
+OpenSportsLib 面向希望为体育视频 AI 建立可复现、可扩展工作流的**研究人员、机器学习工程师和体育分析团队**。
 
-## Why OpenSportsLib?
+## 为什么选择 OpenSportsLib？
 
-- Unified workflow for training and inference
-- Modular design for adding new tasks, datasets, and models
-- Config driven experiments for reproducibility
-- Optional SpoTTA test-time adaptation for E2ESpot inference
-- Support for multiple modalities and sports workflows
-- Research friendly while still usable in applied settings
+- 训练与推理共用一套工作流
+- 模块化设计，便于新增任务、数据集和模型
+- 配置驱动的实验，便于复现
+- 可选的 SpoTTA 测试时自适应，用于 E2ESpot 推理
+- 支持多种模态和体育场景工作流
+- 兼顾研究友好与实际落地
 
-## Quick links
+## 快速链接
 
-- **Documentation:** https://opensportslab.github.io/opensportslib/
-- **OSL JSON format:** https://opensportslab.github.io/opensportslib/data/osl-json-format/
-- **Inference server:** [server/README.md](server/README.md), including checkpoint and config-only rule-model registration
-- **PyPI:** https://pypi.org/project/opensportslib/
-- **Issues:** https://github.com/OpenSportsLab/opensportslib/issues
+- **文档：** https://opensportslab.github.io/opensportslib/
+- **OSL JSON 格式：** https://opensportslab.github.io/opensportslib/data/osl-json-format/
+- **推理服务：** [server/README.md](server/README.md)，包含 checkpoint 与仅配置的规则模型注册
+- **PyPI：** https://pypi.org/project/opensportslib/
+- **Issues：** https://github.com/OpenSportsLab/opensportslib/issues
 
 ---
 
-## Installation
+## 安装
 
-> Requires **Python 3.12+**.  
-> Supports CUDA 12.6 / 12.8 / 13.0 (with CPU fallback).  
-> PyTorch Geometric uses a dedicated PyTorch 2.12.1 compatibility profile.
+> 需要 **Python 3.12+**。  
+> 支持 CUDA 12.6 / 12.8 / 13.0（没有 NVIDIA 驱动时回退到 CPU）。  
+> 驱动只到 CUDA 12.1–12.5 时，安装仍支持 Pascal 的 PyTorch 2.5.1（`cu121`）。  
+> PyTorch Geometric 在 CUDA 12.6+ 上使用 PyTorch 2.12.1 兼容配置；旧驱动则保持 2.5.1。
 
-### Create conda env
+### 创建 conda 环境
 
 ```bash
 conda create -n osl python=3.12 pip -y
 conda activate osl
 ```
 
-### Stable release
+### 稳定版
 
 ```bash
 pip install opensportslib
 ```
 
-### Pre release
+### 预发布版
 
 ```bash
 pip install --pre opensportslib
 ```
 
-### Source development version
+### 源码开发版
 
 ```bash
 pip install -e .
 ```
 
-### Setup Environment (PyTorch, CUDA aware & Optional Dependencies)
+### 配置环境（PyTorch、CUDA 感知与可选依赖）
 ```bash
-# Install PyTorch (CPU/GPU auto-detected)
+# 安装 PyTorch（自动检测 CPU/GPU）
 opensportslib setup
 
-# Optional: install PyTorch Geometric support. This replaces the installed
-# Torch stack with the PyG-compatible PyTorch 2.12.1 profile.
+# 可选：安装 PyTorch Geometric 支持。这会把已安装的
+# Torch 栈替换为与 PyG 兼容的 PyTorch 2.12.1 配置。
 opensportslib setup --pyg
 
-# Optional: install for DALI support
+# 可选：安装 DALI 支持
 opensportslib setup --dali
 
-# Optional: install the X-VARS-compatible VQA dependency profile
+# 可选：安装与 X-VARS 兼容的 VQA 依赖配置
 opensportslib setup --vqa_xvars
 
-# Optional: install the Qwen-compatible VQA dependency profile
+# 可选：安装与 Qwen 兼容的 VQA 依赖配置
 opensportslib setup --vqa_qwen
 ```
 ---
 
-**Note:**  
-Run `opensportslib setup` to automatically configure dependencies.  
-If issues occur, manually install compatible versions of `torch`, `torchvision`, and related libraries according to your CUDA version or system compatibility.
+**说明：**  
+运行 `opensportslib setup` 会自动配置依赖。  
+如果出现问题，请根据你的 CUDA 版本或系统兼容性，手动安装匹配的 `torch`、`torchvision` 及相关库。
 
-For VQA, use exactly one backend-specific dependency profile:
+VQA 请只选用一套后端专用依赖配置：
 
-- `--vqa_xvars` installs the X-VARS-compatible Hugging Face stack from `XVARS_DEPENDENCY_PINS`
-- `--vqa_qwen` installs the Qwen-compatible Hugging Face stack from `QWEN_DEPENDENCY_PINS`
+- `--vqa_xvars` 会按 `XVARS_DEPENDENCY_PINS` 安装与 X-VARS 兼容的 Hugging Face 依赖栈
+- `--vqa_qwen` 会按 `QWEN_DEPENDENCY_PINS` 安装与 Qwen 兼容的 Hugging Face 依赖栈
 
-The `vqa_qwen` config supports `Qwen/Qwen2.5-7B-Instruct` and `Qwen/Qwen3.5-9B-Base`.
+`vqa_qwen` 配置支持 `Qwen/Qwen2.5-7B-Instruct` 和 `Qwen/Qwen3.5-9B-Base`。
 
 ---
 
-## Data and pretrained models
+## 数据与预训练模型
 
-OpenSportsLib uses external annotation files, datasets, and pretrained checkpoints.
+OpenSportsLib 使用外部标注文件、数据集和预训练 checkpoint。
 
-Public assets are hosted under the **OpenSportsLab Hugging Face organization**:
+公开资源托管在 **OpenSportsLab Hugging Face 组织**：
 
 **https://huggingface.co/OpenSportsLab**
 
-Use it as the main entry point to find:
-- datasets
-- annotation files
-- extracted features
-- pretrained models and checkpoints
+可从这里查找：
+- 数据集
+- 标注文件
+- 提取后的特征
+- 预训练模型与 checkpoint
 
-See the [Model Zoo](docs/model-zoo.md) for available pretrained models,
-reported scores, datasets, and loading snippets.
-
----
-
-## Dataset format
-
-OpenSportsLib uses the **OSL JSON v2.0** annotation format for multimodal
-datasets and predictions. See the [OSL JSON format guide](docs/data/osl-json-format.md)
-for its schema, examples, and conversion notes.
+可用预训练模型、报告分数、数据集和加载示例见 [模型库](docs/model-zoo.md)。
 
 ---
 
-## Quickstart
+## 数据集格式
 
-### Classification
+OpenSportsLib 使用 **OSL JSON v2.0** 标注格式来描述多模态数据集和预测结果。格式说明、示例和转换说明见 [OSL JSON 格式指南](docs/data/osl-json-format.md)。
+
+---
+
+## 快速开始
+
+### 分类
 
 ```python
 from opensportslib.apis import ClassificationModel
 
 my_model = ClassificationModel(
     config="/path/to/classification.yaml",
-    weights=None,  # optional: path or Hugging Face model ID
+    weights=None,  # 可选：本地路径或 Hugging Face 模型 ID
 )
 
 my_model.train(
@@ -149,19 +146,18 @@ my_model.save_predictions(
 )
 ```
 
-For localization, VQA, and additional end-to-end examples, see the
-[API guide](opensportslib/apis/README.md), [quickstart scripts](examples/quickstart/),
-and [VQA guide](docs/tools/vqa.md).
+定位、VQA 以及更多端到端示例见
+[API 指南](opensportslib/apis/README.md)、[快速开始脚本](examples/quickstart/)
+和 [VQA 指南](docs/tools/vqa.md)。
 
 
 ---
 
-## Hugging Face Dataset Transfer
+## Hugging Face 数据集传输
 
-OpenSportsLib provides APIs and scripts for downloading and uploading OSL datasets with Hugging Face.
+OpenSportsLib 提供用于下载和上传 OSL 数据集到 Hugging Face 的 API 与脚本。
 
-For SN-GAR classification and action-spotting configurations, setup, caching,
-and training commands, see the [SN-GAR examples](examples/sngar/README.md).
+SN-GAR 分类与动作检测的配置、环境准备、缓存和训练命令见 [SN-GAR 示例](examples/sngar/README.md)。
 
 ### Python API
 
@@ -174,7 +170,7 @@ from opensportslib.tools import (
 )
 ```
 
-### Scripts
+### 脚本
 
 ```bash
 python tools/download/download_osl_hf.py --repo-id <org/repo> --revision main --split test --format parquet --output-dir downloaded_data --annotations-only
@@ -183,24 +179,24 @@ python tools/download/upload_osl_hf.py --repo-id <org/repo> --json-path <local_d
 
 ---
 
-## Examples and documentation
+## 示例与文档
 
-Use the README for the fast start, then go deeper through:
+先用本 README 快速上手，再通过以下资料深入：
 
-- Full documentation: https://opensportslab.github.io/opensportslib/
-- OSL JSON format: [docs/data/osl-json-format.md](docs/data/osl-json-format.md)
-- High-level API guide: [opensportslib/apis/README.md](opensportslib/apis/README.md)
-- Configuration guide: https://opensportslab.github.io/opensportslib/config/configuration-guide/
-- Example configs: [examples/configs/](examples/configs/)
-- Quickstart scripts: [examples/quickstart/](examples/quickstart/)
-- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
-- Developer guide: [DEVELOPERS.md](DEVELOPERS.md)
+- 完整文档：https://opensportslab.github.io/opensportslib/
+- OSL JSON 格式：[docs/data/osl-json-format.md](docs/data/osl-json-format.md)
+- 高层 API 指南：[opensportslib/apis/README.md](opensportslib/apis/README.md)
+- 配置指南：https://opensportslab.github.io/opensportslib/config/configuration-guide/
+- 示例配置：[examples/configs/](examples/configs/)
+- 快速开始脚本：[examples/quickstart/](examples/quickstart/)
+- 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md)
+- 开发者指南：[DEVELOPERS.md](DEVELOPERS.md)
 
 ---
 
-## Development setup
+## 开发环境
 
-For contributors who want to work from source:
+从源码参与开发：
 
 ```bash
 git clone https://github.com/OpenSportsLab/opensportslib.git
@@ -208,9 +204,9 @@ cd opensportslib
 pip install -e .
 ```
 
-### Conda option
+### Conda 方式
 
-If you prefer conda:
+如果更习惯 conda：
 
 ```bash
 conda create -n osl python=3.12 pip
@@ -218,53 +214,50 @@ conda activate osl
 pip install -e .
 ```
 
-### Setup Environment (PyTorch, CUDA aware & Optional Dependencies)
+### 配置环境（PyTorch、CUDA 感知与可选依赖）
 ```bash
-# Install PyTorch (CPU/GPU auto-detected)
+# 安装 PyTorch（自动检测 CPU/GPU）
 opensportslib setup
 
-# Optional: install PyTorch Geometric support. This replaces the installed
-# Torch stack with the PyG-compatible PyTorch 2.12.1 profile.
+# 可选：安装 PyTorch Geometric 支持。这会把已安装的
+# Torch 栈替换为与 PyG 兼容的 PyTorch 2.12.1 配置。
 opensportslib setup --pyg
 
-# Optional: install for DALI support
+# 可选：安装 DALI 支持
 opensportslib setup --dali
 
-# Optional: install the X-VARS-compatible VQA dependency profile
+# 可选：安装与 X-VARS 兼容的 VQA 依赖配置
 opensportslib setup --vqa_xvars
 
-# Optional: install the Qwen-compatible VQA dependency profile
+# 可选：安装与 Qwen 兼容的 VQA 依赖配置
 opensportslib setup --vqa_qwen
 ```
 
 ---
 
-## Contributing
+## 贡献
 
-We welcome contributions. Pull requests must target `dev`, and each
-GitHub-linked commit author must accept the [Individual Contributor License
-Agreement](.github/CLA.md) when prompted by the `CLA check`.
+欢迎贡献。Pull request 必须指向 `dev`，每位与 GitHub 账号关联的提交作者在 `CLA check` 提示时，须接受[个人贡献者许可协议](.github/CLA.md)。
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow and
-[DEVELOPERS.md](DEVELOPERS.md) for architecture and extension guidance.
+贡献流程见 [CONTRIBUTING.md](CONTRIBUTING.md)，架构与扩展说明见 [DEVELOPERS.md](DEVELOPERS.md)。
 
 ---
 
-## License
+## 许可证
 
-OpenSportsLib is available under dual licensing.
+OpenSportsLib 采用双重许可。
 
-### Open source license
-[AGPL 3.0](LICENSE) for research, academic, and community use.
+### 开源许可
+研究、学术和社区使用适用 [AGPL 3.0](LICENSE)。
 
-### Commercial license
-For proprietary or commercial deployment, please refer to [LICENSE-COMMERCIAL](LICENSE-COMMERCIAL).
+### 商业许可
+专有或商业部署请参阅 [LICENSE-COMMERCIAL](LICENSE-COMMERCIAL)。
 
 ---
 
-## Citation
+## 引用
 
-If you use OpenSportsLib in your research, please cite the project.
+如果在研究中使用 OpenSportsLib，请引用本项目。
 
 ```bibtex
 @misc{opensportslib,
@@ -277,17 +270,16 @@ If you use OpenSportsLib in your research, please cite the project.
 
 ---
 
-## Acknowledgments
+## 致谢
 
-OpenSportsLib is developed within the broader OpenSportsLab effort for sports
-video understanding. Core contributors affiliated with KAUST include:
+OpenSportsLib 是 OpenSportsLab 体育视频理解工作的一部分。来自 KAUST 的核心贡献者包括：
 
-- [Jeet Vora](https://jeetv.github.io/) — Remote Research Engineer
-- [Dr. Merey Ramazanova](https://meryusha.github.io/) — Post-Doc
-- [Dr. Silvio Giancola](https://www.silviogiancola.com/) — Research Scientist
+- [Jeet Vora](https://jeetv.github.io/) — 远程研究工程师
+- [Dr. Merey Ramazanova](https://meryusha.github.io/) — 博士后
+- [Dr. Silvio Giancola](https://www.silviogiancola.com/) — 研究科学家
 
-For synchronized native-FPS GAR action clips and optional exact frame reproduction, see the
-[spotting-to-classification converter](docs/tools/spotting-to-classification.md).
+同步的原生帧率 GAR 动作片段，以及可选的精确帧复现，见
+[spotting 转分类转换器](docs/tools/spotting-to-classification.md)。
 
-For full-rate tracking clips with the same classification sample IDs, see the
-[tracking conversion script](docs/tools/spotting-tracking-to-classification.md).
+使用相同分类样本 ID 的全帧率跟踪片段，见
+[跟踪转换脚本](docs/tools/spotting-tracking-to-classification.md)。

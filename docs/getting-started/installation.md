@@ -14,14 +14,14 @@ opensportslib setup
 
 For the latest prerelease, use `pip install --pre opensportslib`. For source development, clone the repository and replace the install command with `pip install -e .`.
 
-`opensportslib setup` detects `nvidia-smi` when available and installs a CPU wheel when it is not. It selects among CUDA 12.6, 12.8, and 13.0 wheel profiles from the reported driver and visible GPU compute capabilities; it is not a general CUDA toolkit installer.
+`opensportslib setup` detects `nvidia-smi` when available and installs a CPU wheel when it is not. It selects among CUDA 12.6, 12.8, and 13.0 wheel profiles from the reported driver and visible GPU compute capabilities. A driver that reports CUDA 12.1–12.5 instead gets the pinned PyTorch 2.5.1 `cu121` profile, which still includes Pascal kernels. It is not a general CUDA toolkit installer.
 
 ## Optional profiles
 
 | Command | Use when | Important behavior |
 | --- | --- | --- |
 | `opensportslib setup --dali` | Using DALI video loading on an NVIDIA GPU | Installs DALI/CuPy for the selected CUDA profile; DALI is not a CPU loader. |
-| `opensportslib setup --pyg` | Using graph/tracking models | Replaces Torch with the pinned PyG-compatible Torch 2.12.1 profile and installs `torch-geometric`. |
+| `opensportslib setup --pyg` | Using graph/tracking models | Replaces Torch with the pinned PyG-compatible Torch 2.12.1 profile and installs `torch-geometric`. On the CUDA 12.1 legacy profile it keeps PyTorch 2.5.1. |
 | `opensportslib setup --pyg --pyg_extensions` | Optional compiled PyG extensions are required | Verifies binary wheels before installing extension packages. |
 | `opensportslib setup --vqa_xvars` | Running X-VARS VQA | Replaces the Hugging Face dependency set with X-VARS pins. |
 | `opensportslib setup --vqa_qwen` | Running Qwen VQA | Replaces the Hugging Face dependency set with Qwen pins. |

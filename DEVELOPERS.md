@@ -1,195 +1,195 @@
-## 📁 Folder Structure
+## 📁 目录结构
 
-The following is the detailed folder structure for the `OpenSportsLib` repository, describing the organization of core modules, configurations, and documentation.
+以下是 `OpenSportsLib` 仓库的详细目录结构，说明核心模块、配置与文档的组织方式。
 
 ---
 
-### Root Directory
+### 根目录
 
 - **`README.md`**  
-  Project overview, feature list, installation instructions, and quick-start examples.
+  项目概览、功能列表、安装说明和快速开始示例。
 
 - **`pyproject.toml`**  
-  Project metadata, build system requirements, and dependency lists.
+  项目元数据、构建系统要求，以及依赖列表。
 
 - **`MANIFEST.in`**  
-  Ensures non-Python files (such as YAML configurations) are included in package distributions.
+  确保非 Python 文件（例如 YAML 配置）被包含进包分发中。
 
 ---
 
-## `opensportslib/` (Source Code)
+## `opensportslib/`（源代码）
 
-The main package containing the framework’s core logic.
+包含框架核心逻辑的主包。
 
 ---
 
 ### `apis/`
-High-level entry points for training and inference.
+训练与推理的高层入口。
 
 - **`classification.py`**  
-  API for video-based action recognition and foul classification tasks.
+  基于视频的动作识别与犯规分类任务 API。
 
 - **`localization.py`**  
-  API for temporal action spotting tasks.
+  时序动作定位（temporal action spotting）任务 API。
 
 ---
 
 ### `core/`
-The internal engine of the framework.
+框架的内部引擎。
 
 - **`trainer/`**  
-  Implementation of task-specific training and inference loops.
+  各任务训练与推理循环的实现。
 
 - **`loss/`**  
-  Custom loss functions (e.g., Cross-Entropy and specialized localization losses).
+  自定义损失函数（例如交叉熵，以及专门的定位损失）。
 
-- **`optimizer/` & `scheduler/`**  
-  Centralized builders for optimization strategies and learning rate schedules.
+- **`optimizer/` 与 `scheduler/`**  
+  优化策略与学习率调度的集中构建器。
 
 - **`sampler/`**  
-  Specialized data samplers, such as weighted samplers for handling imbalanced datasets.
+  专用数据采样器，例如用于处理不平衡数据集的加权采样器。
 
 - **`utils/`**  
-  Core utilities for:
-  - DDP setup  
-  - Configuration resolution  
-  - Checkpointing  
-  - Video processing  
+  核心工具，用于：
+  - DDP 设置  
+  - 配置解析  
+  - 检查点保存  
+  - 视频处理  
 
 ---
 
 ### `models/`
-Modular architecture components for flexible model building.
+用于灵活搭建模型的模块化架构组件。
 
-- **`backbones/`, `necks/`, `heads/`**  
-  Layers and builders used to construct neural network architectures.
+- **`backbones/`、`necks/`、`heads/`**  
+  用于构建神经网络架构的层与构建器。
 
 - **`base/`**  
-  Base classes and modality-specific implementations  
-  (video-based, tracking-based, or end-to-end models).
+  基类，以及按模态划分的实现  
+  （基于视频、基于跟踪，或端到端模型）。
 
 - **`utils/`**  
-  Shared layers and specialized modules such as:
+  共享层与专用模块，例如：
   - TSM  
   - GSM  
   - ASFormer  
 
 - **`builder.py`**  
-  Centralized logic used to assemble full models from configuration files.
+  根据配置文件组装完整模型的集中逻辑。
 
 ---
 
 ### `datasets/`
-Data ingestion and preprocessing logic for various soccer-related tasks.
+各类足球相关任务的数据读取与预处理逻辑。
 
 - **`classification_dataset.py`**  
-  Loaders for action recognition and foul classification.
+  动作识别与犯规分类的数据加载器。
 
 - **`localization_dataset.py`**  
-  High-performance loaders integrated with NVIDIA DALI for temporal action spotting.
+  与 NVIDIA DALI 集成的高性能加载器，用于时序动作定位。
 
 - **`builder.py`**  
-  Orchestrates dataset instantiation based on YAML settings.
+  根据 YAML 设置编排数据集的实例化。
 
 ---
 
 ### `config/`
-Templates and configuration files defining task parameters.
+定义任务参数的模板与配置文件。
 
 - **`classification/default.yaml`**  
-  Configuration template for foul classification tasks.
+  犯规分类任务的配置模板。
 
 - **`localization/default.yaml`**  
-  Configuration template for action spotting tasks.
+  动作定位任务的配置模板。
 
 - **`graph_tracking_classification/`**  
-  Specialized configurations for graph-based tracking models  
-  (e.g., GraphConv, GIN).
+  基于图的跟踪模型的专用配置  
+  （例如 GraphConv、GIN）。
 
 ---
 
 ### `metrics/`
-Evaluation logic and performance measurement tools.
+评估逻辑与性能度量工具。
 
 - **`classification_metric.py`**  
-  Calculates accuracy, precision, recall, and F1 scores.
+  计算准确率、精确率、召回率和 F1。
 
 - **`localization_metric.py`**  
-  Computes Average Precision (mAP) for temporal spotting tasks.
+  计算时序定位任务的平均精度（mAP）。
 
 
-### 👨‍💻 Where to Start as a New Developer
+### 👨‍💻 新开发者从哪里开始
 
-Start from the public APIs:
+从公共 API 入手：
 ```bash
 opensportslib/apis/classification.py
 opensportslib/apis/localization.py
 ```
-These handle: config loading ,trainer creation, training execution, inference entry points  
-Most workflows begin here.
+它们负责：加载配置、创建 trainer、执行训练、提供推理入口。  
+大多数工作流都从这里开始。
 
-### 📦 Add a New Dataset
+### 📦 添加新数据集
 
-Work in:
+在以下位置工作：
 ```bash
 opensportslib/datasets/
 opensportslib/datasets/builder.py
 ```
-Steps:
+步骤：
 
-1. Create a dataset class.
+1. 创建数据集类。
 
-2. Register it in `datasets/builder.py`
+2. 在 `datasets/builder.py` 中注册它。
 
 
-### 🧠 Add a New Model
+### 🧠 添加新模型
 
-Work in:
+在以下位置工作：
 ```bash
 opensportslib/models/
 opensportslib/models/builder.py
 ```
-Steps:
+步骤：
 
-1. Implement your model inside one of:
+1. 在以下目录之一中实现模型：
    - `backbones/`
    - `necks/`
    - `heads/`
    - `base/`
 
-2. Register the model inside `models/builder.py`
+2. 在 `models/builder.py` 中注册该模型。
 
 
-### ⚙️ Modify Configurations
-Canonical experiment configs live in:
+### ⚙️ 修改配置
+正式实验配置位于：
 ```bash
 opensportslib/configs/**/*.yaml
 ```
-Legacy fixture configs kept only for compatibility/migration coverage live in:
+仅为兼容与迁移覆盖而保留的旧版夹具配置位于：
 ```bash
 opensportslib/legacy_config/*.yaml
 ```
-Typical edits:
+常见修改项：
 - TYPE
 - DATA
 - MODEL
 - TRAIN
 - SYSTEM
 
-### 🔁 Modify the Training Loop
+### 🔁 修改训练循环
 
-To change training behavior, edit:
+要改变训练行为，编辑：
 ```bash
 opensportslib/core/trainer/
 ```
-This is where you can modify:
+可以在这里修改：
 
-- Forward pass  
-- Loss computation  
-- Logging  
-- Validation   
-- Checkpointing  
+- 前向传播  
+- 损失计算  
+- 日志  
+- 验证  
+- 检查点保存  
 
-### High-Level Workflow
+### 高层工作流
 
-YAML Config -> APIs (apis/) -> Datasets (datasets/) -> Models (models/) -> Trainer (core/trainer/) -> Metrics (metrics/)
+YAML 配置 -> API（apis/）-> 数据集（datasets/）-> 模型（models/）-> Trainer（core/trainer/）-> 指标（metrics/）

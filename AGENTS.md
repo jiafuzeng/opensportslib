@@ -1,58 +1,58 @@
 # AGENTS.md
 
-This document is the operational playbook for AI coding agents contributing to OpenSportsLib.
+本文档是 AI 编程代理为 OpenSportsLib 贡献代码时的操作手册。
 
-## Purpose and Audience
+## 目的与读者
 
-- Audience: AI coding agents (autonomous or semi-autonomous) working in this repository.
-- Goal: provide concrete, executable contribution rules for safe and consistent development.
+- 读者：在本仓库中工作的 AI 编程代理（自主或半自主）。
+- 目标：提供具体、可执行的贡献规则，保证开发安全且一致。
 
-## Library Mission
+## 库的使命
 
-OpenSportsLib exists to centralize development for AI in sports.
+OpenSportsLib 用于集中开展体育领域的 AI 开发。
 
-- The library must support multiple modalities (video, tracking, graphs, language, multimodal combinations).
-- The library must support multiple tasks through a unified framework.
-- Every task must be clearly defined and configured with YAML.
+- 库必须支持多种模态（视频、轨迹跟踪、图、语言，以及多模态组合）。
+- 库必须通过统一框架支持多种任务。
+- 每个任务都必须有清晰定义，并用 YAML 进行配置。
 
-Current task coverage is focused on:
+当前任务覆盖重点：
 
-- classification
-- localization
+- 分类（classification）
+- 定位（localization）
 
-Long-term task roadmap includes (non-exhaustive):
+长期任务路线图包括（非穷尽）：
 
-- retrieval
-- description and dense description
-- VQA
-- representation learning
-- player detection
-- tracking
-- identification and re-identification
-- game state reconstruction
-- field localization
-- active learning tooling
-- test-time adaptation tooling
+- 检索（retrieval）
+- 描述与稠密描述（description and dense description）
+- 视觉问答（VQA）
+- 表征学习（representation learning）
+- 球员检测（player detection）
+- 跟踪（tracking）
+- 识别与重识别（identification and re-identification）
+- 比赛状态重建（game state reconstruction）
+- 场地定位（field localization）
+- 主动学习工具（active learning tooling）
+- 测试时自适应工具（test-time adaptation tooling）
 
-## Task and Module Architecture Rules
+## 任务与模块架构规则
 
-- Each task must be developed as an independent task module/wrapper with its own clear interfaces.
-- Task-specific logic should stay in the task module.
-- Shared logic should be extracted only when it is truly reused across tasks.
-- If a component is shared, implement it as a cross-task module with neutral naming and no hidden coupling to one task.
-- Keep the task boundary explicit: task APIs orchestrate, shared modules provide reusable building blocks.
+- 每个任务必须作为独立的任务模块/包装器开发，并拥有清晰的接口。
+- 任务专属逻辑应留在任务模块内。
+- 只有在逻辑确实被多个任务复用时，才应提取为共享逻辑。
+- 若某个组件被共享，应实现为跨任务模块，使用中性命名，且不得隐式耦合到某一个任务。
+- 任务边界必须明确：任务 API 负责编排，共享模块提供可复用的构建块。
 
-## Source-of-Truth Hierarchy
+## 事实来源层级
 
-- `AGENTS.md` defines agent execution workflow and contribution guardrails.
-- `CONTRIBUTING.md` and `DEVELOPERS.md` remain the broader policy and architecture references.
-- If content overlaps:
-  - use `AGENTS.md` for day-to-day agent actions,
-  - use `CONTRIBUTING.md` and `DEVELOPERS.md` for additional project context and rationale.
+- `AGENTS.md` 定义代理的执行流程与贡献护栏。
+- `CONTRIBUTING.md` 与 `DEVELOPERS.md` 仍是更宽泛的政策与架构参考。
+- 若内容重叠：
+  - 日常代理操作以 `AGENTS.md` 为准，
+  - 额外的项目背景与设计理由以 `CONTRIBUTING.md` 和 `DEVELOPERS.md` 为准。
 
-## Environment Bootstrap
+## 环境初始化
 
-Use these commands to set up a working environment:
+使用以下命令搭建工作环境：
 
 ```bash
 git clone https://github.com/OpenSportsLab/opensportslib.git
@@ -63,77 +63,76 @@ conda activate osl
 
 pip install -e .
 
-# Install PyTorch (CPU/GPU auto-detected)
+# 安装 PyTorch（自动检测 CPU/GPU）
 opensportslib setup
 
-# Optional dependencies
+# 可选依赖
 opensportslib setup --pyg
 opensportslib setup --dali
 ```
 
-## Required Contribution Workflow
+## 必须遵守的贡献流程
 
-1. Start from `dev`:
+1. 从 `dev` 开始：
 
 ```bash
 git checkout dev
 git pull origin dev
 ```
 
-2. Create a feature/fix branch from `dev`.
-3. Open PRs targeting `dev` (not `main`).
-4. Every GitHub-linked commit author in a PR must accept the individual CLA
-   when prompted by the required `CLA check`; see [CONTRIBUTING.md](CONTRIBUTING.md).
-5. Use commit message prefixes:
-   - `feat:` new feature
-   - `fix:` bug fix
-   - `refactor:` internal cleanup/refactor
-   - `docs:` documentation updates
+2. 从 `dev` 创建功能或修复分支。
+3. 打开以 `dev` 为目标的 PR（不要指向 `main`）。
+4. PR 中每个与 GitHub 关联的提交作者，在必需的 `CLA check` 提示时必须接受个人 CLA；详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+5. 提交信息使用以下前缀：
+   - `feat:` 新功能
+   - `fix:` 缺陷修复
+   - `refactor:` 内部清理或重构
+   - `docs:` 文档更新
 
-## Code Change Rules
+## 代码变更规则
 
-- Preserve public APIs by default.
-- If a breaking API change is unavoidable:
-  - include an explicit `BREAKING CHANGE` note in the PR/commit description,
-  - update all affected docs and tests in the same change.
-- Maintain task-wrapper consistency:
-  - shared contract in `BaseTaskModel`,
-  - task-specific behavior in task wrappers (`ClassificationModel`, `LocalizationModel`, etc.).
-- Keep prediction saving explicit via `save_predictions(...)`; avoid hidden disk-write side effects in `infer()`.
+- 默认保持公共 API 不变。
+- 若破坏性 API 变更不可避免：
+  - 在 PR/提交说明中明确注明 `BREAKING CHANGE`，
+  - 在同一次变更中更新所有受影响的文档与测试。
+- 保持任务包装器的一致性：
+  - 共享契约放在 `BaseTaskModel`，
+  - 任务专属行为放在任务包装器中（`ClassificationModel`、`LocalizationModel` 等）。
+- 预测结果的保存必须通过 `save_predictions(...)` 显式完成；避免在 `infer()` 中产生隐式的磁盘写入副作用。
 
-## Testing Contract (Mandatory)
+## 测试约定（强制）
 
-Before opening a PR, run the single test entry point:
+打开 PR 之前，运行唯一的测试入口：
 
 ```bash
 bash scripts/run_tests.sh
 ```
 
-When APIs/signatures/behavior change, update the relevant tests, including:
+当 API、函数签名或行为发生变化时，更新相关测试，包括：
 
-- smoke tests,
-- API contract tests,
-- integration subset tests.
+- 冒烟测试（smoke tests）
+- API 契约测试（API contract tests）
+- 集成子集测试（integration subset tests）
 
-## Documentation Contract
+## 文档约定
 
-When API behavior changes, update the relevant docs in the same PR:
+当 API 行为发生变化时，在同一个 PR 中更新相关文档：
 
 - `README.md`
 - `opensportslib/apis/README.md`
-- `docs/tni/tni.md` and/or `docs/tni/config-guide.md` (when applicable)
+- `docs/tni/tni.md` 和/或 `docs/tni/config-guide.md`（适用时）
 
-## PR Checklist (Agent-Executable)
+## PR 检查清单（代理可执行）
 
-- [ ] Branch created from `dev`
-- [ ] PR targets `dev`
-- [ ] Tests pass (`bash scripts/run_tests.sh`)
-- [ ] Documentation updated for behavior/API changes
-- [ ] Backward compatibility reviewed
-- [ ] Commit/PR description includes API impact summary
-- [ ] If breaking: explicit `BREAKING CHANGE` note + migration-facing docs/tests updates
+- [ ] 分支从 `dev` 创建
+- [ ] PR 目标为 `dev`
+- [ ] 测试通过（`bash scripts/run_tests.sh`）
+- [ ] 已针对行为/API 变更更新文档
+- [ ] 已审查向后兼容性
+- [ ] 提交/PR 说明包含 API 影响摘要
+- [ ] 若为破坏性变更：明确的 `BREAKING CHANGE` 说明，并更新面向迁移的文档与测试
 
-## Related Docs
+## 相关文档
 
 - `CONTRIBUTING.md`
 - `DEVELOPERS.md`

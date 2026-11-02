@@ -19,11 +19,32 @@ def test_select_cuda_wheel_uses_cu126_for_pascal_with_cuda_13(monkeypatch):
     assert setup_lib.select_cuda_wheel("13.0", [(6, 0)]) == "cu126"
 
 
-def test_select_torch_packages_returns_unpinned_package_names():
+def test_select_torch_packages_returns_unpinned_package_names(monkeypatch):
+    monkeypatch.setattr(setup_lib, "CUDA_TAG", "cu128")
     assert setup_lib.select_torch_packages([(7, 0)]) == (
         "torch",
         "torchvision",
         "torchaudio",
+    )
+
+
+def test_select_cuda_wheel_uses_legacy_cu121_when_driver_is_older_than_12_6(monkeypatch):
+    monkeypatch.setattr(setup_lib.platform, "machine", lambda: "x86_64")
+    assert setup_lib.select_cuda_wheel("12.2", [(6, 1)]) == "cu121"
+    assert setup_lib.select_cuda_wheel("12.5", [(8, 6)]) == "cu121"
+
+
+def test_select_cuda_wheel_rejects_driver_older_than_cuda_12_1():
+    with pytest.raises(RuntimeError, match="too old"):
+        setup_lib.select_cuda_wheel("11.8", [(6, 1)])
+
+
+def test_select_torch_packages_pins_legacy_cuda_121_stack(monkeypatch):
+    monkeypatch.setattr(setup_lib, "CUDA_TAG", "cu121")
+    assert setup_lib.select_torch_packages([(6, 1)]) == (
+        "torch==2.5.1",
+        "torchvision==0.20.1",
+        "torchaudio==2.5.1",
     )
 
 

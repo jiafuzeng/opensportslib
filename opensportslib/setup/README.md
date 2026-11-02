@@ -31,6 +31,7 @@ replace setup’s compute-capability validation or guarantee a supported profile
 | Target | PyTorch wheel tag | DALI package | CuPy package |
 | --- | --- | --- | --- |
 | CPU only | `cpu` | not needed | not needed |
+| CUDA 12.1–12.5 driver | `cu121` (PyTorch 2.5.1) | `nvidia-dali-cuda120` | `cupy-cuda12x` |
 | CUDA 12.6 | `cu126` | `nvidia-dali-cuda120` | `cupy-cuda12x` |
 | CUDA 12.8 | `cu128` | `nvidia-dali-cuda120` | `cupy-cuda12x` |
 | CUDA 13.0 | `cu130` | `nvidia-dali-cuda130` | `cupy-cuda13x` |
@@ -42,7 +43,10 @@ capabilities. It installs CPU wheels when no CUDA driver is available.
 
 Notes:
 
-- Choose one Torch wheel tag: `cpu`, `cu126`, `cu128`, or `cu130`.
+- Choose one Torch wheel tag: `cpu`, `cu121`, `cu126`, `cu128`, or `cu130`.
+- `cu121` is only the legacy profile for drivers that report CUDA 12.1–12.5.
+  It pins `torch==2.5.1`, `torchvision==0.20.1`, and `torchaudio==2.5.1`.
+  `--pyg` keeps that stack instead of switching to PyTorch 2.12.1.
 - CUDA 12.x uses `nvidia-dali-cuda120` and `cupy-cuda12x`; CUDA 13.x uses
   `nvidia-dali-cuda130` and `cupy-cuda13x`.
 - PyTorch wheels include their CUDA runtime. The driver must support the
@@ -79,6 +83,13 @@ workflow is still `opensportslib setup`.
 ```bash
 python -m pip install torch torchvision torchaudio \
   --index-url https://download.pytorch.org/whl/cpu
+```
+
+### CUDA 12.1–12.5 driver
+
+```bash
+python -m pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 \
+  --index-url https://download.pytorch.org/whl/cu121
 ```
 
 ### CUDA 12.6
@@ -152,8 +163,9 @@ python -m pip install torch==2.12.1 torchvision==0.27.1 \
 python -m pip install torch-geometric
 ```
 
-Use the matching index for the first command: `cpu`, `cu126`, `cu128`, or
-`cu130`. Check the result before installing extensions:
+Use the matching index for the first command: `cpu`, `cu121`, `cu126`, `cu128`, or
+`cu130`. The `cu121` index only publishes the pinned PyTorch 2.5.1 profile.
+Check the result before installing extensions:
 
 ```bash
 python - <<'PY'
@@ -291,9 +303,9 @@ intended GPU group with `CUDA_VISIBLE_DEVICES`.
 
 ### The driver cannot support the selected wheel
 
-The setup command requires a CUDA 12.6+ compatible driver for its CUDA wheel
-profiles, and CUDA 13.0+ for GPUs that require `cu130`. Upgrade the NVIDIA
-driver rather than forcing a wheel tag unsupported by the driver.
+Current wheels need a CUDA 12.6+ driver, and GPUs that require `cu130` need
+CUDA 13.0+. A driver that reports CUDA 12.1–12.5 uses the pinned PyTorch 2.5.1
+`cu121` profile. Older drivers still need an NVIDIA driver upgrade.
 
 ### `nvidia-smi` reports CUDA 12.8 but Torch uses `cu126`
 
